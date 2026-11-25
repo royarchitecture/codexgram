@@ -25,6 +25,18 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## Preview the sign-in screen
+
+Open the app in the iOS simulator from the Expo CLI. The visual preview and **Continue as guest** work in Expo Go.
+
+## Test Clerk sign-in
+
+1. Set `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` in `.env` or `.env.local` using the existing Clerk application's development publishable key.
+2. In that Clerk development instance, enable Apple and Google for sign-up and sign-in. Under **Native applications**, allowlist `codexgram://sso-callback` for mobile SSO.
+3. Open an iOS development build so it can receive the OAuth callback. Sign in, reopen the app to check that the session persists, then use **Sign out** on Explore.
+
+[Clerk OAuth setup](https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections)
+
 ## Get a fresh project
 
 When you're ready, run:
