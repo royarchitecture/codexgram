@@ -46,12 +46,11 @@ export const profilePosts: Post[] = [
 export const feed: (Post & {
   aspect: number;
   likes: number;
-  comments: number;
   liked: boolean;
   time: string;
 })[] = [
-  { ...coffee, image: require("@/assets/images/preview/feed-coffee.jpg"), aspect: 362 / 352, likes: 17, comments: 3, liked: true, time: "Today at 8:12 AM" },
-  { ...rain, image: require("@/assets/images/preview/feed-rain.jpg"), aspect: 362 / 105, likes: 24, comments: 2, liked: false, time: "Today at 7:48 AM" },
+  { ...coffee, image: require("@/assets/images/preview/feed-coffee.jpg"), aspect: 362 / 352, likes: 17, liked: true, time: "Today at 8:12 AM" },
+  { ...rain, image: require("@/assets/images/preview/feed-rain.jpg"), aspect: 362 / 105, likes: 31, liked: false, time: "Yesterday at 9:16 PM" },
 ];
 
 export const conversations = [
@@ -59,3 +58,34 @@ export const conversations = [
   { person: jules, body: "That fog was worth the early start.", time: "1h", unread: true },
   { person: noa, body: "Thanks for watching the clip.", time: "Yesterday", unread: false },
 ];
+
+export const elise = { name: "Elise Morgan", handle: "elisefilm", avatar: require("@/assets/images/preview/elise.jpg") };
+export const people = [mara, eli, elise, jules, noa];
+
+export const eliPosts: Post[] = [
+  { ...coffee, image: require("@/assets/images/preview/public-coffee.jpg") },
+  { id: "eli-flowers", author: eli, image: require("@/assets/images/preview/public-flowers.jpg"), caption: "Flowers in the window." },
+  { id: "eli-chair", author: eli, image: require("@/assets/images/preview/public-chair.jpg"), caption: "One red chair." },
+  { id: "eli-cafe", author: eli, image: require("@/assets/images/preview/public-cafe.jpg"), caption: "A rainy stop for coffee." },
+  { id: "eli-book", author: eli, image: require("@/assets/images/preview/public-book.jpg"), caption: "One more chapter." },
+  { id: "eli-machine", author: eli, image: require("@/assets/images/preview/public-machine.jpg"), caption: "First coffee." },
+];
+
+export type PreviewComment = { id: string; author: Person; body: string; time: string };
+export const postComments: Record<string, PreviewComment[]> = {
+  coffee: [
+    { id: "coffee-1", author: jules, body: "Love the afternoon light.", time: "1h" },
+    { id: "coffee-2", author: mara, body: "I always take that table too.", time: "42m" },
+    { id: "coffee-3", author: noa, body: "I can almost smell the coffee.", time: "21m" },
+  ],
+  rain: [
+    { id: "rain-1", author: jules, body: "Those reflections are unreal.", time: "2h" },
+    { id: "rain-2", author: mara, body: "This feels like a film still.", time: "1h" },
+    { id: "rain-3", author: eli, body: "Love the colors.", time: "45m" },
+    { id: "rain-4", author: elise, body: "The rain makes this.", time: "32m" },
+    { id: "rain-5", author: jules, body: "That light at the end of the street.", time: "10m" },
+  ],
+};
+
+export const detailRain = require("@/assets/images/preview/detail-rain.jpg");
+export const pears = require("@/assets/images/preview/pears.jpg");

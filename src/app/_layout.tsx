@@ -8,19 +8,25 @@ import { StatusBar } from "expo-status-bar";
 import { Platform } from "react-native";
 
 import { clerkPublishableKey } from "@/features/auth/config";
+import { PreviewAccount, PreviewInbox } from "@/features/social/preview-state";
+import { PreviewSocial } from "@/features/social/social-state";
 
 export default function RootLayout() {
   const pathname = usePathname();
   const statusBarStyle = pathname === "/sign-in" ? "light" : "dark";
   const usesNativeStatusBar = Platform.OS === "ios" && !isRunningInExpoGo();
   const navigator = (
-    <>
-      {!usesNativeStatusBar && <StatusBar style={statusBarStyle} />}
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#FAF9F6" } }}>
-        <Stack.Screen name="(tabs)" options={usesNativeStatusBar ? { statusBarStyle: "dark" } : {}} />
-        <Stack.Screen name="sign-in" options={usesNativeStatusBar ? { statusBarStyle: "light" } : {}} />
-      </Stack>
-    </>
+    <PreviewAccount>
+      <PreviewSocial>
+        <PreviewInbox>
+          {!usesNativeStatusBar && <StatusBar style={statusBarStyle} />}
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#FAF9F6" } }}>
+            <Stack.Screen name="(tabs)" options={usesNativeStatusBar ? { statusBarStyle: "dark" } : {}} />
+            <Stack.Screen name="sign-in" options={usesNativeStatusBar ? { statusBarStyle: "light" } : {}} />
+          </Stack>
+        </PreviewInbox>
+      </PreviewSocial>
+    </PreviewAccount>
   );
 
   if (!clerkPublishableKey) {

@@ -1,30 +1,35 @@
+import { router } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
-import { conversations } from "@/features/social/preview-data";
+import { conversations, people } from "@/features/social/preview-data";
 import { usePreviewInbox } from "@/features/social/preview-state";
+import { usePreviewSocial } from "@/features/social/social-state";
 import { Avatar, colors, Icon, Page, PageHeading, Sheet } from "@/features/social/ui";
 
 type Conversation = (typeof conversations)[number];
 
 export default function MessagesScreen() {
-  const { unread, markRead, sent, send } = usePreviewInbox();
-  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const { unread, markRead, sent } = usePreviewInbox();
+  const { blocked } = usePreviewSocial();
+  const inbox = [
+    ...conversations,
+    ...people.filter(({ handle }) => sent[handle]?.length && !conversations.some(({ person }) => person.handle === handle))
+      .map((person) => ({ person, body: "", time: "", unread: false })),
+  ].filter(({ person }) => !blocked.includes(person.handle));
+
   const [composing, setComposing] = useState(false);
-  const [draft, setDraft] = useState("");
+  const [pendingConversation, setPendingConversation] = useState<Conversation | null>(null);
 
   function open(item: Conversation) {
     markRead(item.person.handle);
-    setComposing(false);
-    setDraft("");
-    setConversation(item);
+    router.push({ pathname: "/direct-message", params: { handle: item.person.handle } });
   }
 
-  function sendDraft() {
-    const message = draft.trim();
-    if (!conversation || !message) return;
-    send(conversation.person.handle, message);
-    setDraft("");
+  function openAfterComposeDismisses() {
+    if (!pendingConversation) return;
+    open(pendingConversation);
+    setPendingConversation(null);
   }
 
   return (
@@ -44,7 +49,7 @@ export default function MessagesScreen() {
           }
         />
         <View className="mt-[18.5px] gap-[6px]">
-          {conversations.map((item) => {
+          {inbox.map((item) => {
             const { person, body, time } = item;
             const isUnread = unread.includes(person.handle);
             const latest = sent[person.handle]?.at(-1);
@@ -76,41 +81,27 @@ export default function MessagesScreen() {
           })}
         </View>
       </View>
-      {composing && (
-        <Sheet title="New message" onClose={() => setComposing(false)}>
-          {conversations.map((item) => (
-            <Pressable key={item.person.handle} accessibilityRole="button" className="flex-row items-center gap-3 px-[22px] py-[12px] active:opacity-70" onPress={() => open(item)}>
+      {(composing || pendingConversation) && (
+        <Sheet
+          title="New message"
+          visible={composing}
+          onClose={() => setComposing(false)}
+          onDismiss={openAfterComposeDismisses}
+        >
+          {inbox.map((item) => (
+            <Pressable
+              key={item.person.handle}
+              accessibilityRole="button"
+              className="flex-row items-center gap-3 px-[22px] py-[12px] active:opacity-70"
+              onPress={() => {
+                setPendingConversation((pending) => pending ?? item);
+                setComposing(false);
+              }}
+            >
               <Avatar person={item.person} size={38} />
               <Text className="text-[16px] font-semibold text-ink">{item.person.name}</Text>
             </Pressable>
           ))}
-        </Sheet>
-      )}
-      {conversation && (
-        <Sheet title={conversation.person.name} onClose={() => setConversation(null)}>
-          <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
-            <ScrollView contentContainerStyle={{ padding: 22, gap: 10 }} keyboardShouldPersistTaps="handled">
-              <Text className="max-w-[85%] self-start rounded-2xl bg-[#EEEFEE] p-3 text-[16px] text-ink">{conversation.body}</Text>
-              {sent[conversation.person.handle]?.map((message, index) => (
-                <Text key={index} className="max-w-[85%] self-end rounded-2xl bg-[#3355DB] p-3 text-[16px] text-white">{message}</Text>
-              ))}
-            </ScrollView>
-            <View className="flex-row items-center gap-3 px-[22px] py-2">
-              <TextInput
-                accessibilityLabel="Message"
-                placeholder="Message"
-                placeholderTextColor={colors.slate}
-                value={draft}
-                onChangeText={setDraft}
-                returnKeyType="send"
-                onSubmitEditing={sendDraft}
-                className="min-h-[44px] flex-1 rounded-full bg-[#EEEFEE] px-4 text-[16px] text-ink"
-              />
-              <Pressable accessibilityRole="button" disabled={!draft.trim()} onPress={sendDraft} className="min-h-[44px] justify-center px-2 disabled:opacity-40">
-                <Text className="font-bold text-cobalt">Send</Text>
-              </Pressable>
-            </View>
-          </KeyboardAvoidingView>
         </Sheet>
       )}
     </Page>
