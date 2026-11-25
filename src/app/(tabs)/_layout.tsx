@@ -1,20 +1,10 @@
 import { usePathname } from "expo-router";
 import { NativeTabs } from "expo-router/native-tabs";
 
-import { PreviewAccount, PreviewInbox, usePreviewAccount, usePreviewInbox } from "@/features/social/preview-state";
+import { usePreviewAccount, usePreviewInbox } from "@/features/social/preview-state";
 import { colors } from "@/features/social/ui";
 
 export default function TabsLayout() {
-  return (
-    <PreviewAccount>
-      <PreviewInbox>
-        <Tabs />
-      </PreviewInbox>
-    </PreviewAccount>
-  );
-}
-
-function Tabs() {
   const pathname = usePathname();
   const { isSignedIn } = usePreviewAccount();
   const { unread } = usePreviewInbox();

@@ -1,23 +1,26 @@
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
-import { feed, type Post } from "@/features/social/preview-data";
+import { feed } from "@/features/social/preview-data";
 import { usePreviewAccount } from "@/features/social/preview-state";
-import { Avatar, colors, Duration, Icon, Page, PostSheet } from "@/features/social/ui";
+import { usePreviewSocial } from "@/features/social/social-state";
+import { Avatar, colors, Duration, Icon, Page } from "@/features/social/ui";
 
 export default function HomeScreen() {
   const { isSignedIn } = usePreviewAccount();
-  const [selected, setSelected] = useState<Post | null>(null);
-  const [likes, setLikes] = useState<Record<string, boolean>>({});
+  const { blocked, isLiked, toggleLike, commentsFor } = usePreviewSocial();
+
+  function openPost(id: string, options: { menu?: string; comments?: string } = {}) {
+    router.push({ pathname: "/explore/post/[id]", params: { id, from: "home", ...options } });
+  }
 
   function createPost() {
     if (!isSignedIn) {
       router.push({ pathname: "/sign-in", params: { from: "home" } });
       return;
     }
-    Alert.alert("Create post", "Photo and video uploads will be available when the feed is connected.");
+    router.push("/create-post");
   }
 
   return (
@@ -36,8 +39,9 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      {feed.map((post) => {
-        const liked = likes[post.id] ?? post.liked;
+      {feed.filter(({ author }) => !blocked.includes(author.handle)).map((post) => {
+        const liked = isLiked(post.id);
+        const commentCount = commentsFor(post.id).length;
         const likeCount = post.likes + Number(liked) - Number(post.liked);
 
         return (
@@ -52,7 +56,7 @@ export default function HomeScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={"Options for " + post.caption}
                 hitSlop={8}
-                onPress={() => setSelected(post)}
+                onPress={() => openPost(post.id, { menu: "1" })}
                 className="h-[36px] w-[26px] items-end justify-center"
               >
                 <Icon sf="ellipsis" md="more_horiz" size={18} color={colors.slate} />
@@ -61,7 +65,7 @@ export default function HomeScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={post.caption}
-              onPress={() => setSelected(post)}
+              onPress={() => openPost(post.id)}
               className={post.duration ? "overflow-hidden rounded-t-[18px]" : "overflow-hidden rounded-[18px]"}
             >
               <Image source={post.image} style={{ width: "100%", aspectRatio: post.aspect }} />
@@ -72,15 +76,15 @@ export default function HomeScreen() {
                 accessibilityRole="togglebutton"
                 accessibilityLabel={liked ? "Unlike post" : "Like post"}
                 accessibilityState={{ checked: liked }}
-                onPress={() => setLikes((current) => ({ ...current, [post.id]: !(current[post.id] ?? post.liked) }))}
+                onPress={() => toggleLike(post.id)}
                 className="min-h-[34px] flex-row items-center gap-[7px] px-[2px]"
               >
                 <Icon sf={liked ? "heart.fill" : "heart"} md="favorite" size={18} color={liked ? colors.blue : colors.ink} />
                 <Text className="text-[15px] font-bold text-ink">{likeCount}</Text>
               </Pressable>
-              <Pressable accessibilityRole="button" accessibilityLabel={post.comments + " comments"} onPress={() => setSelected(post)} className="min-h-[34px] flex-row items-center gap-[8px]">
+              <Pressable accessibilityRole="button" accessibilityLabel={commentCount + " comments"} onPress={() => openPost(post.id, { comments: "1" })} className="min-h-[34px] flex-row items-center gap-[8px]">
                 <Icon sf="ellipsis.bubble" md="chat_bubble" size={18} />
-                <Text className="text-[15px] text-ink">{post.comments}</Text>
+                <Text className="text-[15px] text-ink">{commentCount}</Text>
               </Pressable>
             </View>
             <Text className="mt-[3px] text-[16px] leading-[21px] text-ink">{post.caption}</Text>
@@ -88,7 +92,6 @@ export default function HomeScreen() {
           </View>
         );
       })}
-      {selected && <PostSheet post={selected} onClose={() => setSelected(null)} />}
     </Page>
   );
 }

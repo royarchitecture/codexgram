@@ -1,18 +1,19 @@
 import { useAuth } from "@clerk/expo";
-import { type PropsWithChildren, createContext, useContext, useState } from "react";
+import { type PropsWithChildren, createContext, useCallback, useContext, useState } from "react";
 
 import { clerkPublishableKey } from "@/features/auth/config";
 import { conversations } from "@/features/social/preview-data";
 
 const AccountContext = createContext<{
   isSignedIn: boolean;
+  userId?: string | null;
   signOut?: () => Promise<void>;
 }>({ isSignedIn: false });
 
 function ClerkAccount({ children }: PropsWithChildren) {
-  const { isSignedIn, signOut } = useAuth();
+  const { isSignedIn, userId, signOut } = useAuth();
   return (
-    <AccountContext.Provider value={{ isSignedIn: isSignedIn === true, signOut: () => signOut() }}>
+    <AccountContext.Provider value={{ isSignedIn: isSignedIn === true, userId, signOut: () => signOut() }}>
       {children}
     </AccountContext.Provider>
   );
@@ -39,9 +40,9 @@ export function PreviewInbox({ children }: PropsWithChildren) {
   );
   const [sent, setSent] = useState<Record<string, string[]>>({});
 
-  function markRead(handle: string) {
-    setUnread((current) => current.filter((unreadHandle) => unreadHandle !== handle));
-  }
+  const markRead = useCallback((handle: string) => {
+    setUnread((current) => current.includes(handle) ? current.filter((unreadHandle) => unreadHandle !== handle) : current);
+  }, []);
 
   function send(handle: string, message: string) {
     setSent((current) => ({ ...current, [handle]: [...(current[handle] ?? []), message] }));

@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { type AndroidSymbol, type SFSymbol, SymbolView } from "expo-symbols";
-import type { PropsWithChildren, ReactNode } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { type PropsWithChildren, type ReactNode, useEffect } from "react";
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { SafeAreaView as ScreenSafeAreaView } from "react-native-screens/experimental";
 
@@ -102,9 +102,30 @@ export function PhotoGrid({ posts, ratio, onSelect }: {
   );
 }
 
-export function Sheet({ title, onClose, children }: PropsWithChildren<{ title: string; onClose: () => void }>) {
+export function Sheet({
+  title,
+  onClose,
+  onDismiss,
+  visible = true,
+  children,
+}: PropsWithChildren<{ title: string; onClose: () => void; onDismiss?: () => void; visible?: boolean }>) {
+  const usesAndroidHandoff = Platform.OS === "android" && onDismiss !== undefined;
+
+  useEffect(() => {
+    if (!usesAndroidHandoff || visible || !onDismiss) return;
+    // Android Modal has no dismissal event. Wait for the non-animated removal to commit.
+    const frame = requestAnimationFrame(onDismiss);
+    return () => cancelAnimationFrame(frame);
+  }, [onDismiss, usesAndroidHandoff, visible]);
+
   return (
-    <Modal animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType={usesAndroidHandoff ? "none" : "slide"}
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+      onDismiss={onDismiss}
+    >
       <SafeAreaView className="flex-1 bg-paper">
         <View className="flex-row items-center justify-between gap-4 border-b border-[#E1E1DB] px-[22px] py-2">
           <Text accessibilityRole="header" className="shrink text-xl font-extrabold text-ink">{title}</Text>
@@ -118,20 +139,6 @@ export function Sheet({ title, onClose, children }: PropsWithChildren<{ title: s
   );
 }
 
-export function PostSheet({ post, onClose }: { post: Post; onClose: () => void }) {
-  return (
-    <Sheet title={post.author.name} onClose={onClose}>
-      <ScrollView contentContainerStyle={styles.sheetContent}>
-        <Image source={post.image} style={{ width: "100%", aspectRatio: 1, borderRadius: 14 }} />
-        <Text className="font-semibold text-slate">@{post.author.handle}</Text>
-        <Text className="text-[17px] text-ink">{post.caption}</Text>
-        {post.duration && <Text className="text-sm text-slate">Video preview · {post.duration}</Text>}
-      </ScrollView>
-    </Sheet>
-  );
-}
-
 const styles = StyleSheet.create({
   pageContent: { paddingBottom: 24, width: "100%", maxWidth: 560, alignSelf: "center" },
-  sheetContent: { padding: 22, gap: 10 },
 });

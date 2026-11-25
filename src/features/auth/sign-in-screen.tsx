@@ -17,6 +17,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { type SignInProvider, useSocialSignIn } from "@/features/auth/use-social-sign-in";
 import { demoPost } from "@/features/posts/demo-post";
 
+import { usePreviewSocial } from "@/features/social/social-state";
+
 type SignInScreenProps = {
   returnTo: "/home" | "/explore" | "/profile";
   onSignIn?: (provider: SignInProvider) => Promise<string | undefined>;
@@ -26,11 +28,12 @@ type SignInScreenProps = {
 export function ClerkSignInScreen({ returnTo }: Pick<SignInScreenProps, "returnTo">) {
   const { isLoaded, isSignedIn, signIn } = useSocialSignIn();
 
+  const { username, usernameReady } = usePreviewSocial();
   useEffect(() => {
-    if (isSignedIn) {
-      router.dismissTo(returnTo);
-    }
-  }, [isSignedIn, returnTo]);
+    if (!isSignedIn || !usernameReady) return;
+    if (username) router.dismissTo(returnTo);
+    else router.replace({ pathname: "/choose-username", params: { from: returnTo.slice(1) } });
+  }, [isSignedIn, returnTo, username, usernameReady]);
 
   return <SignInScreen returnTo={returnTo} isReady={isLoaded && !isSignedIn} onSignIn={signIn} />;
 }

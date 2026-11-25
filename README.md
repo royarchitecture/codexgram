@@ -33,7 +33,7 @@ Open the app in the iOS simulator from the Expo CLI. The visual preview and **Co
 
 1. Set `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` in `.env` or `.env.local` using the existing Clerk application's development publishable key.
 2. In that Clerk development instance, enable Apple and Google for sign-up and sign-in. Under **Native applications**, allowlist `codexgram://sso-callback` for mobile SSO.
-3. Open an iOS development build so it can receive the OAuth callback. Sign in, reopen the app to check that the session persists, then use **Sign out** on Explore.
+3. Open an iOS development build so it can receive the OAuth callback. Sign in, reopen the app to check that the session persists, then select **Sign out** under **Profile → Settings**.
 
 [Clerk OAuth setup](https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections)
 
